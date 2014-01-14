@@ -2440,7 +2440,7 @@ int mgmt_powered(u16 index, u8 powered)
 {
 	struct mgmt_mode ev;
 	struct cmd_lookup match = { powered, NULL };
-	int ret;
+	int err;
 
 	BT_DBG("hci%u %d", index, powered);
 
@@ -2448,49 +2448,49 @@ int mgmt_powered(u16 index, u8 powered)
 
 	ev.val = powered;
 
-	ret = mgmt_event(MGMT_EV_POWERED, index, &ev, sizeof(ev), match.sk);
+	err = mgmt_event(MGMT_EV_POWERED, index, &ev, sizeof(ev), match.sk);
 
 	if (match.sk)
 		sock_put(match.sk);
 
-	return ret;
+	return err;
 }
 
 int mgmt_discoverable(u16 index, u8 discoverable)
 {
 	struct mgmt_mode ev;
 	struct cmd_lookup match = { discoverable, NULL };
-	int ret;
+	int err;
 
 	mgmt_pending_foreach(MGMT_OP_SET_DISCOVERABLE, index, mode_rsp, &match);
 
 	ev.val = discoverable;
 
-	ret = mgmt_event(MGMT_EV_DISCOVERABLE, index, &ev, sizeof(ev),
+	err = mgmt_event(MGMT_EV_DISCOVERABLE, index, &ev, sizeof(ev),
 								match.sk);
 
 	if (match.sk)
 		sock_put(match.sk);
 
-	return ret;
+	return err;
 }
 
 int mgmt_connectable(u16 index, u8 connectable)
 {
 	struct mgmt_mode ev;
 	struct cmd_lookup match = { connectable, NULL };
-	int ret;
+	int err;
 
 	mgmt_pending_foreach(MGMT_OP_SET_CONNECTABLE, index, mode_rsp, &match);
 
 	ev.val = connectable;
 
-	ret = mgmt_event(MGMT_EV_CONNECTABLE, index, &ev, sizeof(ev), match.sk);
+	err = mgmt_event(MGMT_EV_CONNECTABLE, index, &ev, sizeof(ev), match.sk);
 
 	if (match.sk)
 		sock_put(match.sk);
 
-	return ret;
+	return err;
 }
 
 int mgmt_new_key(u16 index, struct link_key *key, u8 bonded)

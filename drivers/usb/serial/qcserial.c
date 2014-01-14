@@ -39,6 +39,12 @@ static const struct usb_device_id id_table[] = {
 	{DEVICE_G1K(0x413c, 0x8172)},	
 	{DEVICE_G1K(0x413c, 0x8171)},	
 	{DEVICE_G1K(0x1410, 0xa001)},	
+	{DEVICE_G1K(0x1410, 0xa002)},	
+	{DEVICE_G1K(0x1410, 0xa003)},	
+	{DEVICE_G1K(0x1410, 0xa004)},	
+	{DEVICE_G1K(0x1410, 0xa005)},	
+	{DEVICE_G1K(0x1410, 0xa006)},	
+	{DEVICE_G1K(0x1410, 0xa007)},	
 	{DEVICE_G1K(0x1410, 0xa008)},	
 	{DEVICE_G1K(0x0b05, 0x1776)},	
 	{DEVICE_G1K(0x0b05, 0x1774)},	
@@ -56,6 +62,7 @@ static const struct usb_device_id id_table[] = {
 	{DEVICE_G1K(0x05c6, 0x9221)},	
 	{DEVICE_G1K(0x05c6, 0x9231)},	
 	{DEVICE_G1K(0x1f45, 0x0001)},	
+	{DEVICE_G1K(0x1bc7, 0x900e)},	
 
 	
 	{USB_DEVICE(0x1410, 0xa010)},	

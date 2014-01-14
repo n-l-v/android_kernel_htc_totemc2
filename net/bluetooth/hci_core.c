@@ -987,7 +987,7 @@ static void hci_power_on(struct work_struct *work)
 		mgmt_index_added(hdev->id);
 }
 
-static void dev_close_timer ( unsigned long arg)
+static void dev_close_timer( unsigned long arg)
 {
 	struct hci_dev *hdev = (void *) arg;
 	queue_work(hdev->workqueue, &hdev->dev_close);

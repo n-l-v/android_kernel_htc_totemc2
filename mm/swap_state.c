@@ -228,6 +228,7 @@ struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
 		err = swapcache_prepare(entry);
 		if (err == -EEXIST) {	
 			radix_tree_preload_end();
+			cond_resched();
 			continue;
 		}
 		if (err) {		

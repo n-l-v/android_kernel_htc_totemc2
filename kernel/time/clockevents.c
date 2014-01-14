@@ -27,23 +27,35 @@ static RAW_NOTIFIER_HEAD(clockevents_chain);
 
 static DEFINE_RAW_SPINLOCK(clockevents_lock);
 
-u64 clockevent_delta2ns(unsigned long latch, struct clock_event_device *evt)
+static u64 cev_delta2ns(unsigned long latch, struct clock_event_device *evt,
+			bool ismax)
 {
 	u64 clc = (u64) latch << evt->shift;
+	u64 rnd;
 
 	if (unlikely(!evt->mult)) {
 		evt->mult = 1;
 		WARN_ON(1);
 	}
+	rnd = (u64) evt->mult - 1;
+
+	if ((clc >> evt->shift) != (u64)latch)
+		clc = ~0ULL;
+
+	if ((~0ULL - clc > rnd) &&
+	    (!ismax || evt->mult <= (1U << evt->shift)))
+		clc += rnd;
 
 	do_div(clc, evt->mult);
-	if (clc < 1000)
-		clc = 1000;
-	if (clc > KTIME_MAX)
-		clc = KTIME_MAX;
 
-	return clc;
+	return clc > 1000 ? clc : 1000;
 }
+
+u64 clockevent_delta2ns(unsigned long latch, struct clock_event_device *evt)
+{
+	return cev_delta2ns(latch, evt, false);
+}
+
 EXPORT_SYMBOL_GPL(clockevent_delta2ns);
 
 void clockevents_set_mode(struct clock_event_device *dev,
@@ -241,8 +253,8 @@ static void clockevents_config(struct clock_event_device *dev,
 		sec = 600;
 
 	clockevents_calc_mult_shift(dev, freq, sec);
-	dev->min_delta_ns = clockevent_delta2ns(dev->min_delta_ticks, dev);
-	dev->max_delta_ns = clockevent_delta2ns(dev->max_delta_ticks, dev);
+	dev->min_delta_ns = cev_delta2ns(dev->min_delta_ticks, dev, false);
+	dev->max_delta_ns = cev_delta2ns(dev->max_delta_ticks, dev, true);
 }
 
 void clockevents_config_and_register(struct clock_event_device *dev,

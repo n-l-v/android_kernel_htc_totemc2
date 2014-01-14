@@ -62,12 +62,14 @@ static inline void freezer_do_not_count(void)
 static inline void freezer_count(void)
 {
 	current->flags &= ~PF_FREEZER_SKIP;
+	smp_mb();
 	try_to_freeze();
 }
 
-static inline int freezer_should_skip(struct task_struct *p)
-{
-	return !!(p->flags & PF_FREEZER_SKIP);
+static inline bool freezer_should_skip(struct task_struct *p)
+ {
+	smp_mb();
+	return p->flags & PF_FREEZER_SKIP;
 }
 
 

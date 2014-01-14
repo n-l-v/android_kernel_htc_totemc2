@@ -93,7 +93,7 @@ enum tcp_bit_set {
 static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
 	{
 	   { sSS, sSS, sIG, sIG, sIG, sIG, sIG, sSS, sSS, sS2 },
- { sIV, sIV, sIG, sIG, sIG, sIG, sIG, sIG, sIG, sSR },
+ { sIV, sIV, sSR, sIV, sIV, sIV, sIV, sIV, sIV, sSR },
     { sIV, sIV, sFW, sFW, sLA, sLA, sLA, sTW, sCL, sIV },
 	   { sES, sIV, sES, sES, sCW, sCW, sTW, sTW, sCL, sIV },
     { sIV, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL, sCL },
@@ -396,9 +396,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
 		ack = sack = receiver->td_end;
 	}
 
-	if (seq == end
-	    && (!tcph->rst
-		|| (seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)))
+	if (tcph->rst && seq == 0 && state->state == TCP_CONNTRACK_SYN_SENT)
+
 		seq = end = sender->td_end;
 
 	pr_debug("tcp_in_window: ");

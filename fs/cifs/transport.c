@@ -512,7 +512,7 @@ SendReceive2(const unsigned int xid, struct cifs_ses *ses,
 {
 	int rc = 0;
 	int long_op;
-	struct mid_q_entry *midQ = NULL;
+	struct mid_q_entry *midQ = 0;
 	char *buf = iov[0].iov_base;
 
 	long_op = flags & CIFS_TIMEOUT_MASK;
@@ -621,7 +621,7 @@ SendReceive(const unsigned int xid, struct cifs_ses *ses,
 	    int *pbytes_returned, const int long_op)
 {
 	int rc = 0;
-	struct mid_q_entry *midQ;
+	struct mid_q_entry *midQ = 0;
 
 	if (ses == NULL) {
 		cERROR(1, "Null smb session");
@@ -741,7 +741,7 @@ SendReceiveBlockingLock(const unsigned int xid, struct cifs_tcon *tcon,
 {
 	int rc = 0;
 	int rstart = 0;
-	struct mid_q_entry *midQ;
+	struct mid_q_entry *midQ = 0;
 	struct cifs_ses *ses;
 
 	if (tcon == NULL || tcon->ses == NULL) {

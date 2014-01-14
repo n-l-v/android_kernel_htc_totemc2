@@ -405,7 +405,6 @@ static int rpm_suspend(struct device *dev, int rpmflags)
 		goto repeat;
 	}
 
-	dev->power.deferred_resume = false;
 	if (dev->power.no_callbacks)
 		goto no_callback;	
 
@@ -530,6 +529,7 @@ static int rpm_suspend(struct device *dev, int rpmflags)
 	wake_up_all(&dev->power.wait_queue);
 
 	if (dev->power.deferred_resume) {
+		dev->power.deferred_resume = false;
 
 		
 		
@@ -818,6 +818,7 @@ static int rpm_resume(struct device *dev, int rpmflags)
 			if ( log_enable == 1 )
 				dev_info(dev, "%s[%d] spin_unlock\n", __func__, __LINE__);
 			spin_unlock(&dev->parent->power.lock);
+			retval = 1;
 #if defined(CONFIG_MACH_DELUXE_J) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
 			dev->power.runtime_rpm_resume_footprint2 = 13;
 #endif
@@ -1040,7 +1041,7 @@ static int rpm_resume(struct device *dev, int rpmflags)
 #if defined(CONFIG_MACH_DELUXE_J) || defined(CONFIG_MACH_DUMMY) || defined(CONFIG_MACH_DUMMY)
 	dev->power.runtime_rpm_resume_footprint2 = 25;
 #endif
-	if (!retval) {
+	if (retval >= 0) {
 		if ( log_enable == 1 )
 			dev_info(dev, "%s[%d] rpm_idle+\n", __func__, __LINE__);
 		rpm_idle(dev, RPM_ASYNC);

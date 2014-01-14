@@ -225,7 +225,6 @@ static int ext4_valid_block_bitmap(struct super_block *sb,
 	ext4_grpblk_t next_zero_bit;
 	ext4_fsblk_t bitmap_blk;
 	ext4_fsblk_t group_first_block;
-	struct ext4_sb_info *sbi = EXT4_SB(sb);
 
 	if (EXT4_HAS_INCOMPAT_FEATURE(sb, EXT4_FEATURE_INCOMPAT_FLEX_BG)) {
 		return 1;
@@ -235,26 +234,22 @@ static int ext4_valid_block_bitmap(struct super_block *sb,
 	
 	bitmap_blk = ext4_block_bitmap(sb, desc);
 	offset = bitmap_blk - group_first_block;
-	if (!ext4_test_bit(EXT4_B2C(sbi, offset), bh->b_data))
-		
+	if (!ext4_test_bit(offset, bh->b_data))
 		goto err_out;
 
 	
 	bitmap_blk = ext4_inode_bitmap(sb, desc);
 	offset = bitmap_blk - group_first_block;
-	if (!ext4_test_bit(EXT4_B2C(sbi, offset), bh->b_data))
-		
+	if (!ext4_test_bit(offset, bh->b_data))
 		goto err_out;
 
 	
 	bitmap_blk = ext4_inode_table(sb, desc);
 	offset = bitmap_blk - group_first_block;
 	next_zero_bit = ext4_find_next_zero_bit(bh->b_data,
-				EXT4_B2C(sbi, offset + EXT4_SB(sb)->s_itb_per_group),
-				EXT4_B2C(sbi, offset));
-	if (next_zero_bit >=
-			EXT4_B2C(sbi, offset + EXT4_SB(sb)->s_itb_per_group))
-		
+				offset + EXT4_SB(sb)->s_itb_per_group,
+				offset);
+	if (next_zero_bit >= offset + EXT4_SB(sb)->s_itb_per_group)
 		return 1;
 
 err_out:
@@ -357,11 +352,12 @@ static int ext4_has_free_clusters(struct ext4_sb_info *sbi,
 
 	free_clusters  = percpu_counter_read_positive(fcc);
 	dirty_clusters = percpu_counter_read_positive(dcc);
-	root_clusters = EXT4_B2C(sbi, ext4_r_blocks_count(sbi->s_es));
+
+	root_clusters = ext4_r_blocks_count(sbi->s_es) >> sbi->s_cluster_bits;
 
 	if (free_clusters - (nclusters + root_clusters + dirty_clusters) <
 					EXT4_FREECLUSTERS_WATERMARK) {
-		free_clusters  = EXT4_C2B(sbi, percpu_counter_sum_positive(fcc));
+		free_clusters  = percpu_counter_sum_positive(fcc);
 		dirty_clusters = percpu_counter_sum_positive(dcc);
 	}
 	if (free_clusters >= ((root_clusters + nclusters) + dirty_clusters))
@@ -466,7 +462,7 @@ ext4_fsblk_t ext4_count_free_clusters(struct super_block *sb)
 	brelse(bitmap_bh);
 	printk(KERN_DEBUG "ext4_count_free_clusters: stored = %llu"
 	       ", computed = %llu, %llu\n",
-	       EXT4_B2C(EXT4_SB(sb), ext4_free_blocks_count(es)),
+	       EXT4_NUM_B2C(EXT4_SB(sb), ext4_free_blocks_count(es)),
 	       desc_count, bitmap_count);
 	return bitmap_count;
 #else

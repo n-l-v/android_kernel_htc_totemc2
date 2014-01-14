@@ -46,11 +46,7 @@ int sync_filesystem(struct super_block *sb)
 	if (sb->s_flags & MS_RDONLY)
 		return 0;
 
-	if (atomic_read(&vfs_emergency_remount)) {
-		pr_info("%s: force sync fs in wait mode\n", __func__);
-		ret = __sync_filesystem(sb, 1);
-	} else
-		ret = __sync_filesystem(sb, 0);
+	ret = __sync_filesystem(sb, 0);
 	if (ret < 0)
 		return ret;
 	return __sync_filesystem(sb, 1);
@@ -69,13 +65,11 @@ static void sync_filesystems(int wait)
 
 SYSCALL_DEFINE0(sync)
 {
-	trace_sys_sync(0);
 	wakeup_flusher_threads(0, WB_REASON_SYNC);
 	sync_filesystems(0);
 	sync_filesystems(1);
 	if (unlikely(laptop_mode))
 		laptop_sync_completion();
-	trace_sys_sync_done(0);
 	return 0;
 }
 
@@ -131,13 +125,9 @@ SYSCALL_DEFINE1(syncfs, int, fd)
  */
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
-	int err;
 	if (!file->f_op || !file->f_op->fsync)
 		return -EINVAL;
-	trace_vfs_fsync(file);
-	err = file->f_op->fsync(file, start, end, datasync);
-	trace_vfs_fsync_done(file);
-	return err;
+	return file->f_op->fsync(file, start, end, datasync);
 }
 EXPORT_SYMBOL(vfs_fsync_range);
 
@@ -162,17 +152,8 @@ static int do_fsync(unsigned int fd, int datasync)
 
 	file = fget(fd);
 	if (file) {
-		ktime_t fsync_t, fsync_diff;
-		char pathname[256], *path;
-		path = d_path(&(file->f_path), pathname, sizeof(pathname));
-		if (IS_ERR(path))
-			path = "(unknown)";
-		fsync_t = ktime_get();
 		ret = vfs_fsync(file, datasync);
 		fput(file);
-		fsync_diff = ktime_sub(ktime_get(), fsync_t);
-		if (ktime_to_ns(fsync_diff) >= 5000000000LL)
-			pr_info("VFS: %s pid:%d(%s)(parent:%d/%s) takes %lld nsec to fsync %s.\n", __func__, current->pid, current->comm, current->parent->pid, current->parent->comm, ktime_to_ns(fsync_diff), path);
 	}
 	return ret;
 }
