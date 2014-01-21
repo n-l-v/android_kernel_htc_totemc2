@@ -48,6 +48,7 @@ enum pageflags {
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 	PG_compound_lock,
 #endif
+	PG_readahead,
 	__NR_PAGEFLAGS,
 
 	
